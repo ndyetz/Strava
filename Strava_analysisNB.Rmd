@@ -1,0 +1,167 @@
+---
+title: "Neil Strava Analysis"
+output: html_notebook
+---
+<center>
+![STRAVA](http://www.thesmugglersportive.co.uk/wp-content/uploads/2016/03/Strava-Logo.png)
+</center>
+
+#Load Libraries 
+```{r, message = FALSE}
+#install.packages("rgdal")
+#install.packages("maptools")
+#install.packages("httr")
+#install.packages("httpuv")
+#install.packages("jsonlite")
+
+library(maptools)
+library(rgdal)   
+library(httr)
+library(httpuv)
+library(tidyverse)
+library(jsonlite)
+```
+
+#Access data and enter credential
+```{r}
+
+my_app <- oauth_app("strava",
+                    key = "21055",
+                    secret = "5017dd6afa6bfab93bf3cef07961193961a5cdf1"
+)
+
+
+my_endpoint <- oauth_endpoint(
+  request = NULL,
+  authorize = "https://www.strava.com/oauth/authorize",
+  access = "https://www.strava.com/oauth/token"
+)
+
+```
+
+#Load the data convert from Javascript
+```{r}
+#sig <- oauth2.0_token(my_endpoint, my_app, scope = "view_private",  type = NULL, use_oob = FALSE, as_header = FALSE,   use_basic_auth = FALSE, cache = FALSE)
+
+
+jsonData <- fromJSON("https://www.strava.com/api/v3/athlete/activities?access_token=5017dd6afa6bfab93bf3cef07961193961a5cdf1&per_page=200", flatten = TRUE)
+
+```
+
+
+#View some of the data
+```{r}
+nrow(jsonData) ##returns the number of records retrieved
+names(jsonData) ##returns the column names of list vector returned
+head(jsonData, n=3) ## returns the first three full records
+```
+
+##Strava only loads 200 records at a time... if you have more than 200 records, use this
+```{r}
+#jsonData[c(6,7,12,29,31)]
+#
+#
+#jsonData_p2 <- fromJSON("https://www.strava.com/api/v3/athlete/activities?access_token=5017dd6afa6bfab93bf3cef07961193961a5cdf1&per_page=200&page=2", flatten = TRUE)
+#
+#jsonData_p2[c(6,7,12,29,31)]
+#
+#jsonData_p3 <- fromJSON("https://www.strava.com/api/v3/athlete/activities?access_token=5017dd6afa6bfab93bf3cef07961193961a5cdf1&per_page=200&page=3", flatten = TRUE)
+#
+#jsonData_p3[c(6,7,12,29,31)]
+#
+#
+alltimeData <-  jsonData     #rbind.pages(list(jsonData, jsonData_p2, jsonData_p3)) ##combines the three list vectors into one
+#
+#nrow(alltimeData) ##show your full strava activity count for all time
+#
+alltimeData[c(6,7,12,29,31)] ##display the summary data for ALL records
+
+#alltimeData <- as.POSIXct(alltimeData$start_date_local, format = "%Y-%m-%dT%TZ") #convert from character to date
+
+
+```
+
+#Filter by year and convert to American Units
+```{r}
+
+##STATISTICS FOR 2016
+
+#filter just 2017 runs
+
+alltimeData <- alltimeData %>% 
+  mutate(year = ifelse((grepl("2016-", start_date) == TRUE), 2016, NA),
+         year = ifelse((grepl("2017-", start_date) == TRUE), 2017, year),
+         year = ifelse((grepl("2018-", start_date) == TRUE), 2018, year))  %>% 
+  filter(type == "Run")
+
+
+alltimeData <- alltimeData %>% 
+  mutate(distance_miles = distance/1609.34,
+         moving_minutes = moving_time/60,
+         elev_gain_feet = total_elevation_gain*3.28,
+         avg_sp_minmi   = average_speed/0.3926239,
+         elv_gain_ft = total_elevation_gain*3.28084)
+```
+
+#2017
+```{r}
+
+
+###STATISTICS FOR 2017
+
+#filter just 2017 runs
+data2017 <- alltimeData %>% 
+  filter(grepl("2017-", start_date)) %>% 
+  filter(type == "Run")
+  
+
+
+nrow(data2017) ##count the number of records from 2017
+
+data2017 <- data2017 %>% 
+  mutate(distance_miles = distance/1609.34)
+
+data2017[c(51,11,27,29)] ## display the summary data of these 2017 rides
+
+
+
+sum(data2017$distance)/1609.34 ##total 2016 distance, converted from meters to miles
+
+sum(data2017[which(data2017[,27]==TRUE),6])/1609.34 ##total distance where Commute = True, also converted from meters to miles
+
+sum(data2017[which(data2017[,27]==FALSE),6])/1609.34 ##total distance where Commute = False, again converted from meters to miles
+
+```
+
+
+#2018
+```{r}
+
+
+###STATISTICS FOR 2018
+
+#filter just 2018 runs
+data2018 <- alltimeData %>% 
+  filter(grepl("2018-", start_date)) %>% 
+  filter(type == "Run")
+  
+
+
+nrow(data2018) ##count the number of records from 2017
+
+data2018 <- data2018 %>% 
+  mutate(distance_miles = distance/1609.34)
+
+data2018[c(51,11,27,29)] ## display the summary data of these 2017 rides
+
+
+
+sum(data2018$distance)/1609.34 ##total 2016 distance, converted from meters to miles
+
+sum(data2018[which(data2018[,27]==TRUE),6])/1609.34 ##total distance where Commute = True, also converted from meters to miles
+
+sum(data2018[which(data2018[,27]==FALSE),6])/1609.34 ##total distance where Commute = False, again converted from meters to miles
+
+```
+
+
