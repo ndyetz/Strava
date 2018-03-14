@@ -7,3 +7,5 @@
 This repository is dedicated to the Strava program I am creating. I have set it to automatically pull data form my profile and summarize tsimple statistics by year. When I get time, I plan to create plots and year by year comparisons as I track my runs. I also bike on a regular basis but am more interested in analyzing and improving my run time. If you are interested in using this program to develop your own run tracker, then don't hesitate to contact me at <ndyetz@gmail.com>!
 
 This is currently a work in progress and I will only work on it when I have time and motivation. Expect frequent changes as I think of new ideas for this program and have time to clean and tidy it up.
+
+[Follow me on Strava!](https://www.strava.com/athletes/15386069) Let's workout!
