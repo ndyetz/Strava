@@ -24,12 +24,19 @@ library(tidyverse)
 library(jsonlite)
 ```
 
+
+#source Credentials
+
+```{r}
+source("C:/Users/Neil/Desktop/Git/creds.R") # <- Credentials
+```
+
 #Access data and enter credential
 ```{r}
 
 my_app <- oauth_app("strava",
-                    key = "21055",
-                    secret = "5017dd6afa6bfab93bf3cef07961193961a5cdf1"
+                    key = key, # <- From creds file
+                    secret = secret # <- From Creds File
 )
 
 
@@ -46,7 +53,9 @@ my_endpoint <- oauth_endpoint(
 #sig <- oauth2.0_token(my_endpoint, my_app, scope = "view_private",  type = NULL, use_oob = FALSE, as_header = FALSE,   use_basic_auth = FALSE, cache = FALSE)
 
 
-jsonData <- fromJSON("https://www.strava.com/api/v3/athlete/activities?access_token=5017dd6afa6bfab93bf3cef07961193961a5cdf1&per_page=200", flatten = TRUE)
+jsonData <- fromJSON(access_token, flatten = TRUE) # <- From Creds file
+
+rm(key); rm(secret); rm(access_token) #Remove credentials
 
 ```
 
