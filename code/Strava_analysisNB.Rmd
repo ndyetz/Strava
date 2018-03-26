@@ -71,12 +71,12 @@ head(jsonData, n=3) ## returns the first three full records
 ```{r}
 #jsonData[c(6,7,12,29,31)]
 #
-#
-#jsonData_p2 <- fromJSON("https://www.strava.com/api/v3/athlete/activities?access_token=5017dd6afa6bfab93bf3cef07961193961a5cdf1&per_page=200&page=2", flatten = TRUE)
+##Page2
+#jsonData_p2 <- fromJSON(access_token2, flatten = TRUE)
 #
 #jsonData_p2[c(6,7,12,29,31)]
 #
-#jsonData_p3 <- fromJSON("https://www.strava.com/api/v3/athlete/activities?access_token=5017dd6afa6bfab93bf3cef07961193961a5cdf1&per_page=200&page=3", flatten = TRUE)
+#jsonData_p3 <- fromJSON(access_token3, flatten = TRUE)
 #
 #jsonData_p3[c(6,7,12,29,31)]
 #
