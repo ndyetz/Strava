@@ -9,3 +9,7 @@ This repository is dedicated to the Strava program I am creating. I have set it 
 This is currently a work in progress and I will only work on it when I have time and motivation. Expect frequent changes as I think of new ideas for this program and have time to clean and tidy it up.
 
 [Follow me on Strava!](https://www.strava.com/athletes/15386069) Let's workout!
+
+Here are some screenshots from the program: 
+
+**Beginning screen**
