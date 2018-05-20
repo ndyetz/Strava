@@ -1,8 +1,14 @@
 ---
-title: "Neil Strava Analysis"
+title: "Strava Analysis: Runs"
 output:
-  pdf_document: default
-  html_notebook: default
+  html_notebook:
+    toc: yes
+    toc_float: true
+  html_document:
+    toc: yes
+    toc_float: true
+  pdf_document:
+    toc: yes
 ---
 <center>
 ![STRAVA](http://www.thesmugglersportive.co.uk/wp-content/uploads/2016/03/Strava-Logo.png)
@@ -15,6 +21,7 @@ output:
 #install.packages("httr")
 #install.packages("httpuv")
 #install.packages("jsonlite")
+#install.packages("htmlTable")
 
 library(maptools)
 library(rgdal)   
@@ -22,6 +29,11 @@ library(httr)
 library(httpuv)
 library(tidyverse)
 library(jsonlite)
+library(lubridate)
+library(knitr)
+library(htmlTable)
+library(GGally)
+
 ```
 
 
@@ -53,7 +65,7 @@ my_endpoint <- oauth_endpoint(
 #sig <- oauth2.0_token(my_endpoint, my_app, scope = "view_private",  type = NULL, use_oob = FALSE, as_header = FALSE,   use_basic_auth = FALSE, cache = FALSE)
 
 
-jsonData <- fromJSON(access_token, flatten = TRUE) # <- From Creds file
+jsonData <- fromJSON(access_token, flatten = TRUE) # <- pull data from strava
 
 rm(key); rm(secret); rm(access_token) #Remove credentials
 
@@ -62,117 +74,221 @@ rm(key); rm(secret); rm(access_token) #Remove credentials
 
 #View some of the data
 ```{r}
-nrow(jsonData) ##returns the number of records retrieved
-names(jsonData) ##returns the column names of list vector returned
+#nrow(jsonData) ##returns the number of records retrieved
+#names(jsonData) ##returns the column names of list vector returned
 head(jsonData, n=3) ## returns the first three full records
 ```
 
-##Strava only loads 200 records at a time... if you have more than 200 records, use this
+##code for 200+ records
+Strava only loads 200 records of a time when you pull from the API #. If you are a frequent runner and have more than 200 records you will have to use this code. 
+For ever 200 records, you need to pull a new page of data. It is currently set to pull page 2 and page 3 of data. 
 ```{r}
 #jsonData[c(6,7,12,29,31)]
-#
 ##Page2
 #jsonData_p2 <- fromJSON(access_token2, flatten = TRUE)
-#
 #jsonData_p2[c(6,7,12,29,31)]
-#
+#Page 3
 #jsonData_p3 <- fromJSON(access_token3, flatten = TRUE)
-#
 #jsonData_p3[c(6,7,12,29,31)]
-#
-#
-alltimeData <-  jsonData     #rbind.pages(list(jsonData, jsonData_p2, jsonData_p3)) ##combines the three list vectors into one
-#
+#alltimeData <-  jsonData     #rbind.pages(list(jsonData, jsonData_p2, jsonData_p3)) ##combines the three list vectors into one
 #nrow(alltimeData) ##show your full strava activity count for all time
-#
-alltimeData[c(6,7,12,29,31)] ##display the summary data for ALL records
-
-#alltimeData <- as.POSIXct(alltimeData$start_date_local, format = "%Y-%m-%dT%TZ") #convert from character to date
-
-
+#alltimeData[c(6,7,12,29,31)] ##display the summary data for ALL record
 ```
 
 #Filter by year and convert to American Units
 ```{r}
 
-##STATISTICS FOR 2016
-
-#filter just 2017 runs
-
+#Convert time to years
 alltimeData <- alltimeData %>% 
   mutate(year = ifelse((grepl("2016-", start_date) == TRUE), 2016, NA),
          year = ifelse((grepl("2017-", start_date) == TRUE), 2017, year),
          year = ifelse((grepl("2018-", start_date) == TRUE), 2018, year))  %>% 
   filter(type == "Run")
 
-
-alltimeData <- alltimeData %>% 
+#Convert to miles & feet
+reduced_data <- alltimeData %>% 
+  filter(type == "Run") %>% 
   mutate(distance_miles = distance/1609.34,
-         moving_minutes = moving_time/60,
-         elev_gain_feet = total_elevation_gain*3.28,
-         avg_sp_minmi   = average_speed/0.3926239,
-         elv_gain_ft = total_elevation_gain*3.28084)
+        # moving_minutes = moving_time/60,
+         moving_minutes = moving_time,
+         avg_sp_minmi   = (average_speed/0.3926239),
+         elv_gain_ft = total_elevation_gain*3.28084) %>% 
+  filter(avg_sp_minmi > 4) %>%  #remove outliers
+  select(year, distance_miles, moving_minutes, avg_sp_minmi, elv_gain_ft)
 ```
 
-#2017
+#Group by year
 ```{r}
-
-
-###STATISTICS FOR 2017
-
-#filter just 2017 runs
-data2017 <- alltimeData %>% 
-  filter(grepl("2017-", start_date)) %>% 
-  filter(type == "Run")
-  
-
-
-nrow(data2017) ##count the number of records from 2017
-
-data2017 <- data2017 %>% 
-  mutate(distance_miles = distance/1609.34)
-
-data2017[c(51,11,27,29)] ## display the summary data of these 2017 rides
-
-
-
-sum(data2017$distance)/1609.34 ##total 2016 distance, converted from meters to miles
-
-sum(data2017[which(data2017[,27]==TRUE),6])/1609.34 ##total distance where Commute = True, also converted from meters to miles
-
-sum(data2017[which(data2017[,27]==FALSE),6])/1609.34 ##total distance where Commute = False, again converted from meters to miles
-
+#Group runs by year
+group_data <- reduced_data %>% 
+  group_by(year)
 ```
 
+#Stats tables
+##All time
 
-#2018
+###Average statistics
 ```{r}
-
-
-###STATISTICS FOR 2018
-
-#filter just 2018 runs
-data2018 <- alltimeData %>% 
-  filter(grepl("2018-", start_date)) %>% 
-  filter(type == "Run")
-  
-
-
-nrow(data2018) ##count the number of records from 2017
-
-data2018 <- data2018 %>% 
-  mutate(distance_miles = distance/1609.34)
-
-data2018[c(51,11,27,29)] ## display the summary data of these 2017 rides
-
-
-
-sum(data2018$distance)/1609.34 ##total 2016 distance, converted from meters to miles
-
-sum(data2018[which(data2018[,27]==TRUE),6])/1609.34 ##total distance where Commute = True, also converted from meters to miles
-
-sum(data2018[which(data2018[,27]==FALSE),6])/1609.34 ##total distance where Commute = False, again converted from meters to miles
+reduced_data %>% 
+  summarize(
+            n = paste(n(), "runs"),
+            Avg_distance = paste(round(mean(distance_miles), 1), "miles"),
+            Avg_run_time = paste(round(mean(moving_minutes)/60, 0), "minutes"),
+            Avg_Pace = paste(round(seconds_to_period(mean(avg_sp_minmi)*60), 0), "/mile"),
+            Avg_elevation_gain = paste(round(mean(elv_gain_ft),1),"feet")
+            )
 
 ```
+
+###Max statistics
+```{r}
+reduced_data %>% 
+  summarize(
+            n = paste(n(), "runs"),
+            Max_distance = paste(round(max(distance_miles), 1), "miles"),
+            Max_run_time = paste(round(max(moving_minutes)/60, 0), "minutes"),
+            Quickest_Pace = paste(round(seconds_to_period(min(avg_sp_minmi)*60), 0), "/mile"),
+            Max_elevation_gain = paste(round(max(elv_gain_ft),1),"feet")
+            )
+```
+
+
+## By year
+###Average statistics
+```{r}
+group_data %>% 
+  summarize(
+            n = paste(n(), "runs"),
+            Avg_distance = paste(round(mean(distance_miles), 1), "miles"),
+            Avg_run_time = paste(round(mean(moving_minutes)/60, 0), "minutes"),
+            Avg_Pace = paste(round(seconds_to_period(mean(avg_sp_minmi)*60), 0), "/mile"),
+            Avg_elevation_gain = paste(round(mean(elv_gain_ft),1),"feet")
+            )
+
+```
+
+###Max statistics
+```{r}
+group_data %>% 
+  summarize(
+            n = paste(n(), "runs"),
+            Max_distance = paste(round(max(distance_miles), 1), "miles"),
+            Max_run_time = paste(round(max(moving_minutes)/60, 0), "minutes"),
+            Quickest_Pace = paste(round(seconds_to_period(min(avg_sp_minmi)*60), 0), "/mile"),
+            Max_elevation_gain = paste(round(max(elv_gain_ft),1),"feet")
+            )
+```
+
+#Distributions
+
+##All time
+All time distributions
+
+###Distance
+```{r, fig.height= 10, fig.width = 10, warning = FALSE, message = FALSE}
+ggplot(reduced_data, aes(x = distance_miles)) +
+  geom_density(fill = "orangered2") +
+  ggtitle("Distance in miles all time", subtitle = "Dashed line = average") +
+  geom_vline(data=group_data, aes(xintercept=mean(distance_miles)),
+               linetype="dashed", size=1, colour="black")
+```
+
+###Moving time
+```{r, fig.height= 10, fig.width = 10, warning = FALSE, message = FALSE}
+ggplot(reduced_data, aes(x = moving_minutes)) +
+  geom_density(fill = "orangered2") +
+  ggtitle("Moving time in minutes all time", subtitle = "Dashed line = average") +
+    geom_vline(data=group_data, aes(xintercept=mean(moving_minutes)),
+               linetype="dashed", size=1, colour="black")
+```
+
+
+###Average speed
+```{r, fig.height= 10, fig.width = 10, warning = FALSE, message = FALSE}
+ggplot(reduced_data, aes(x = avg_sp_minmi)) +
+  geom_density(fill = "orangered2") +
+  ggtitle("Average speed in minutes/mile all time", subtitle = "Dashed line = average") +
+      geom_vline(data=group_data, aes(xintercept=mean(avg_sp_minmi)),
+               linetype="dashed", size=1, colour="black")
+```
+
+
+###Elevation gain
+```{r, fig.height= 10, fig.width = 10, warning = FALSE, message = FALSE}
+ggplot(group_data, aes(x = elv_gain_ft)) +
+  geom_density(fill = "orangered2") +
+  ggtitle("Elevation gain in feet all time", subtitle = "Dashed line = average") +
+      geom_vline(data=group_data, aes(xintercept=mean(elv_gain_ft)),
+               linetype="dashed", size=1, colour="black")
+```
+
+
+##Facet by year
+###Distance
+```{r, fig.height= 10, fig.width = 10, warning = FALSE, message = FALSE}
+ggplot(group_data, aes(x = distance_miles)) +
+  geom_density(fill = "orangered2") +
+  facet_wrap(~year) +
+  ggtitle("Distance in miles separated by year", subtitle = "Dashed line = average") +
+      geom_vline(data=group_data, aes(xintercept=mean(distance_miles)),
+               linetype="dashed", size=1, colour="black")
+```
+
+###Moving time
+```{r, fig.height= 10, fig.width = 10, warning = FALSE, message = FALSE}
+ggplot(group_data, aes(x = moving_minutes)) +
+  geom_density(fill = "orangered2") +
+  facet_wrap(~year) +
+  ggtitle("Moving time in minutes separated by year", subtitle = "Dashed line = average") +
+      geom_vline(data=group_data, aes(xintercept=mean(moving_minutes)),
+               linetype="dashed", size=1, colour="black")
+```
+
+
+###Average speed
+```{r, fig.height= 10, fig.width = 10, warning = FALSE, message = FALSE}
+ggplot(group_data, aes(x = avg_sp_minmi)) +
+  geom_density(fill = "orangered2") +
+  facet_wrap(~year) +
+  ggtitle("Average speed in minutes/mile separated by year", subtitle = "Dashed line = average") +
+      geom_vline(data=group_data, aes(xintercept=mean(avg_sp_minmi)),
+               linetype="dashed", size=1, colour="black")
+```
+
+
+###Elevation gain
+```{r, fig.height= 10, fig.width = 10, warning = FALSE, message = FALSE}
+ggplot(group_data, aes(x = elv_gain_ft)) +
+  geom_density(fill = "orangered2") +
+  facet_wrap(~year) +
+  ggtitle("Elevation gain in feet separated by year", subtitle = "Dashed line = average") +
+      geom_vline(data=group_data, aes(xintercept=mean(elv_gain_ft)),
+               linetype="dashed", size=1, colour="black")
+```
+
+#Correlation Matrices
+##All time
+```{r, fig.height= 10, fig.width = 10, message = FALSE, warning = FALSE}
+reduced_data %>% 
+ggpairs(columns = c("distance_miles", "moving_minutes", "avg_sp_minmi", "elv_gain_ft"), 
+                      columnLabels = c("Distance in miles", "Minutes spent moving", "average speed (min/mi)", "elevation gain(ft)"), 
+                      aes(color = "orangered2"),
+        progress = F)
+```
+
+
+##Analyzed by Year
+```{r, fig.height= 10, fig.width = 10, warning = FALSE, message = FALSE}
+#Factor year
+reduced_data <- reduced_data %>% 
+  mutate(year = factor(year))
+
+
+ggpairs(reduced_data, columns = c("distance_miles", "moving_minutes", "avg_sp_minmi", "elv_gain_ft"), 
+                      columnLabels = c("Distance in miles", "Minutes spent moving", "average speed (min/mi)", "elevation gain(ft)"), 
+                      mapping = aes(color = year),
+        progress = FALSE) 
+```
+
 
 
