@@ -12,4 +12,36 @@ This is currently a work in progress and I will only work on it when I have time
 
 Here are some screenshots from the program: 
 
-**Beginning screen**
+
+<center>**Beginning screen**
+![](https://raw.githubusercontent.com/ndyetz/Strava/master/screenshots/Capture1.PNG)
+</center>
+
+
+
+<center>**All time statistical tables**
+![](https://raw.githubusercontent.com/ndyetz/Strava/master/screenshots/Capture2.PNG)
+</center>
+
+
+<center>**Statistical tables: Separated by year**
+![](https://raw.githubusercontent.com/ndyetz/Strava/master/screenshots/Capture3.PNG)
+</center>
+
+
+
+<center>**Density plots for many variables**
+![](https://raw.githubusercontent.com/ndyetz/Strava/master/screenshots/Capture4.PNG)
+</center>
+
+
+
+<center>**Density plots for many variables separated by year**
+![](https://raw.githubusercontent.com/ndyetz/Strava/master/screenshots/Capture5.PNG)
+</center>
+
+
+
+<center>**Correlation matrices: Separated by year**
+![](https://raw.githubusercontent.com/ndyetz/Strava/master/screenshots/Capture7.PNG)
+</center>
