@@ -1,6 +1,6 @@
 # Strava
 
-![](https://griffinbikepark.com/wp-content/uploads/2015/09/STRAVA-LOGO.png)
+![](https://raw.githubusercontent.com/ndyetz/Strava/master/Strava-Logo.png)
 
 [Strava](https://www.strava.com/) is a social media app dedicated to connecting users through exercise. I use this app to track my runs and biking activities. A large advantage of Strava when compared to other exercise apps is that Strava allows users access to their own data. 
 
